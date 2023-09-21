@@ -30,26 +30,6 @@ func init() {
 	}
 }
 
-func main() {
-	m = mapper()
-	no := "G1887"
-	date := "2023-09-28"
-	fromZh := "南京南"
-	toZh := "郑州东"
-
-	index(m[fromZh], fromZh, m[toZh], toZh, date)
-
-	id := train(no, m[fromZh], m[toZh], date)
-	stations := pass(id, m[fromZh], m[toZh], date)
-	walk(stations, id, date)
-
-	//ids := trainAll(m[fromZh], m[toZh], date)
-	//for _, id := range ids {
-	//	stations := pass(id, m[fromZh], m[toZh], date)
-	//	fullWalk(stations, id, date)
-	//}
-}
-
 func fullWalk(stations []Station, id string, date string) {
 	trace(id, date, stations[0], stations[len(stations)-1])
 }
