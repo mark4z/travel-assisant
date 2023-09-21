@@ -8,8 +8,12 @@ type Info struct {
 
 type IntervalInfo struct {
 	Data struct {
-		Data []struct {
-			StationName string `json:"station_name"`
-		} `json:"data"`
+		Data []Station `json:"data"`
 	} `json:"data"`
+}
+
+type Station struct {
+	StationName string `json:"station_name"`
+	ArriveTime  string `json:"arrive_time"`
+	StartTime   string `json:"start_time"`
 }
