@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/spf13/cobra"
+	"log"
 	"os"
 )
 
@@ -14,16 +15,13 @@ var (
 )
 
 var rootCmd = &cobra.Command{
-	Use:              "travel",
-	TraverseChildren: true,
-	Run: func(cmd *cobra.Command, args []string) {
-
-	},
+	Use: "travel",
 }
 
 var wk = &cobra.Command{
 	Use: "walk",
 	Run: func(cmd *cobra.Command, args []string) {
+		log.Printf("start walk no: %s, date: %s, from: %s, to: %s", no, date, fromZh, toZh)
 		index(m[fromZh], fromZh, m[toZh], toZh, date)
 
 		id := train(no, m[fromZh], m[toZh], date)
@@ -35,6 +33,7 @@ var wk = &cobra.Command{
 var fw = &cobra.Command{
 	Use: "fullWalk",
 	Run: func(cmd *cobra.Command, args []string) {
+		log.Printf("start fullWalk no: %s, date: %s, from: %s, to: %s", no, date, fromZh, toZh)
 		index(m[fromZh], fromZh, m[toZh], toZh, date)
 		ids := trainAll(m[fromZh], m[toZh], date)
 		for _, id := range ids {
@@ -48,7 +47,7 @@ func Execute() {
 	rootCmd.AddCommand(fw)
 	rootCmd.AddCommand(wk)
 
-	rootCmd.PersistentFlags().StringVarP(&no, "no", "n", "", "train no")
+	wk.PersistentFlags().StringVarP(&no, "no", "n", "", "train no")
 	rootCmd.PersistentFlags().StringVarP(&date, "date", "d", "", "date")
 	rootCmd.PersistentFlags().StringVarP(&fromZh, "from", "f", "", "from")
 	rootCmd.PersistentFlags().StringVarP(&toZh, "to", "t", "", "from")
