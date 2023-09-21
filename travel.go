@@ -32,22 +32,37 @@ func init() {
 
 func main() {
 	m = mapper()
-
-	no := "D375"
-	date := "2023-09-29"
+	no := "G1887"
+	date := "2023-09-28"
 	fromZh := "南京南"
-	toZh := "庐山"
+	toZh := "郑州东"
+
 	index(m[fromZh], fromZh, m[toZh], toZh, date)
+
 	id := train(no, m[fromZh], m[toZh], date)
 	stations := pass(id, m[fromZh], m[toZh], date)
+	walk(stations, id, date)
+
+	//ids := trainAll(m[fromZh], m[toZh], date)
+	//for _, id := range ids {
+	//	stations := pass(id, m[fromZh], m[toZh], date)
+	//	fullWalk(stations, id, date)
+	//}
+}
+
+func fullWalk(stations []Station, id string, date string) {
+	trace(id, date, stations[0], stations[len(stations)-1])
+}
+
+func walk(stations []Station, id string, date string) {
 	for i := 0; i < len(stations); i++ {
 		trace(id, date, stations[0], stations[i])
-		time.Sleep(1 * time.Second)
+		time.Sleep(500 * time.Microsecond)
 	}
 	fmt.Println()
 	for i := 0; i < len(stations); i++ {
 		trace(id, date, stations[i], stations[len(stations)-1])
-		time.Sleep(1 * time.Second)
+		time.Sleep(500 * time.Microsecond)
 	}
 }
 
@@ -57,6 +72,23 @@ func index(from, fromZh, to, toZh, date string) {
 		panic(err)
 	}
 	_ = res.Body.Close()
+}
+
+func trainAll(from, to, date string) (ans []string) {
+	info := trainInfo(date, from, to)
+
+	extraInfo := func(info string) (id, no, s, o, t string) {
+		infos := strings.Split(info, "|")
+		return infos[2], infos[3], infos[32], infos[31], infos[30]
+	}
+
+	for _, v := range info.Data.Result {
+		id, no, _, _, _ := extraInfo(v)
+		if strings.HasPrefix(no, "G") || strings.HasPrefix(no, "D") {
+			ans = append(ans, id)
+		}
+	}
+	return
 }
 
 func train(wantNo, from, to, date string) string {
