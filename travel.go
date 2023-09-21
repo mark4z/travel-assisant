@@ -33,10 +33,10 @@ func init() {
 func main() {
 	m = mapper()
 
-	no := "G3133"
-	date := "2023-10-01"
-	fromZh := "郑州"
-	toZh := "长治"
+	no := "D375"
+	date := "2023-09-29"
+	fromZh := "南京南"
+	toZh := "庐山"
 	index(m[fromZh], fromZh, m[toZh], toZh, date)
 	id := train(no, m[fromZh], m[toZh], date)
 	stations := pass(id, m[fromZh], m[toZh], date)
