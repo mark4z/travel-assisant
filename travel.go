@@ -104,25 +104,34 @@ func trainInfo(date string, from string, to string) *Info {
 	return info
 }
 
-func trace(wantNo, date string, fromS, toS Station) {
+func trace(wantNo, date string, fromS, toS Station) *TrainRes {
 	from := m[fromS.StationName]
 	to := m[toS.StationName]
 	info := trainInfo(date, from, to)
-	extraInfo := func(info string) (id, no, special, one, two, fromS, toS, from, to, arrive, start string) {
+	extraInfo := func(info string) *TrainRes {
 		infos := strings.Split(info, "|")
-		return infos[2], infos[3], infos[32], infos[31], infos[30], infos[4], infos[5], infos[6], infos[7], infos[8], infos[9]
-	}
-	var found bool
-	for _, v := range info.Data.Result {
-		id, no, s, o, t, _, _, _, _, _, _ := extraInfo(v)
-		if id == wantNo {
-			found = true
-			fmt.Println(fmt.Sprintf("train :%s [%s:%s] \ttwo：%s\tone：%s\tspecial：%s\tid:%s\t\n  ", no, fromS.StationName, toS.StationName, t, o, s, id))
+		return &TrainRes{
+			TrainCode:    infos[2],
+			TrainNo:      infos[3],
+			SpecialSeat:  infos[32],
+			OneSeat:      infos[31],
+			TwoSeat:      infos[30],
+			StartStation: infos[4],
+			EndStation:   infos[5],
+			FromStation:  infos[6],
+			ToStation:    infos[7],
+			StartTime:    infos[8],
+			EndTime:      infos[9],
 		}
 	}
-	if found {
-		return
+	for _, v := range info.Data.Result {
+		t := extraInfo(v)
+		if t.TrainCode == wantNo {
+			fmt.Println(fmt.Sprintf("train :%s [%s:%s] \ttwo：%s\tone：%s\tspecial：%s\tid:%s\t\n  ", t.TrainNo, m[t.FromStation], m[t.ToStation], t.TwoSeat, t.OneSeat, t.SpecialSeat, t.TrainCode))
+			return t
+		}
 	}
+	return nil
 }
 
 func pass(id, from, to, date string) []Station {

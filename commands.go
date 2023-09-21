@@ -18,6 +18,13 @@ var rootCmd = &cobra.Command{
 	Use: "travel",
 }
 
+var sv = &cobra.Command{
+	Use: "serve",
+	Run: func(cmd *cobra.Command, args []string) {
+		serve()
+	},
+}
+
 var wk = &cobra.Command{
 	Use: "walk",
 	Run: func(cmd *cobra.Command, args []string) {
@@ -46,6 +53,7 @@ var fw = &cobra.Command{
 func Execute() {
 	rootCmd.AddCommand(fw)
 	rootCmd.AddCommand(wk)
+	rootCmd.AddCommand(sv)
 
 	wk.PersistentFlags().StringVarP(&no, "no", "n", "", "train no")
 	rootCmd.PersistentFlags().StringVarP(&date, "date", "d", "", "date")
