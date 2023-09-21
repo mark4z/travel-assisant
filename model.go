@@ -27,7 +27,7 @@ type TrainReq struct {
 	TrainNo     string `json:"train_no"`
 	FromStation string `json:"from-station"`
 	ToStation   string `json:"to-station"`
-	Date        string `json:"date"`
+	Date        string `json:"__date"`
 }
 
 type TrainRes struct {
@@ -36,11 +36,15 @@ type TrainRes struct {
 	StartTime string `json:"start_time"`
 	EndTime   string `json:"end_time"`
 
-	StartStation string `json:"start_station_name"`
-	EndStation   string `json:"end_station_name"`
+	StartStation     string `json:"start_station"`
+	StartStationName string `json:"start_station_name"`
+	EndStation       string `json:"end_station"`
+	EndStationName   string `json:"end_station_name"`
 
-	FromStation string `json:"from_station_name"`
-	ToStation   string `json:"to_station_name"`
+	FromStation     string `json:"from_station"`
+	FromStationName string `json:"from_station_name"`
+	ToStation       string `json:"to_station"`
+	ToStationName   string `json:"to_station_name"`
 
 	TwoSeat     string `json:"two_seat"`
 	OneSeat     string `json:"one_seat"`

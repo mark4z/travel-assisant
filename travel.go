@@ -111,17 +111,21 @@ func trace(wantNo, date string, fromS, toS Station) *TrainRes {
 	extraInfo := func(info string) *TrainRes {
 		infos := strings.Split(info, "|")
 		return &TrainRes{
-			TrainCode:    infos[2],
-			TrainNo:      infos[3],
-			SpecialSeat:  infos[32],
-			OneSeat:      infos[31],
-			TwoSeat:      infos[30],
-			StartStation: infos[4],
-			EndStation:   infos[5],
-			FromStation:  infos[6],
-			ToStation:    infos[7],
-			StartTime:    infos[8],
-			EndTime:      infos[9],
+			TrainCode:        infos[2],
+			TrainNo:          infos[3],
+			SpecialSeat:      infos[32],
+			OneSeat:          infos[31],
+			TwoSeat:          infos[30],
+			StartStation:     infos[4],
+			StartStationName: m[infos[4]],
+			EndStation:       infos[5],
+			EndStationName:   m[infos[5]],
+			FromStation:      infos[6],
+			FromStationName:  m[infos[6]],
+			ToStation:        infos[7],
+			ToStationName:    m[infos[7]],
+			StartTime:        infos[8],
+			EndTime:          infos[9],
 		}
 	}
 	for _, v := range info.Data.Result {

@@ -8,10 +8,10 @@ import (
 )
 
 var (
-	no     string
-	date   string
-	fromZh string
-	toZh   string
+	__no     string
+	__date   string
+	__fromZh string
+	__toZh   string
 )
 
 var rootCmd = &cobra.Command{
@@ -28,24 +28,24 @@ var sv = &cobra.Command{
 var wk = &cobra.Command{
 	Use: "walk",
 	Run: func(cmd *cobra.Command, args []string) {
-		log.Printf("start walk no: %s, date: %s, from: %s, to: %s", no, date, fromZh, toZh)
-		index(m[fromZh], fromZh, m[toZh], toZh, date)
+		log.Printf("start walk __no: %s, __date: %s, from: %s, to: %s", __no, __date, __fromZh, __toZh)
+		index(m[__fromZh], __fromZh, m[__toZh], __toZh, __date)
 
-		id := train(no, m[fromZh], m[toZh], date)
-		stations := pass(id, m[fromZh], m[toZh], date)
-		walk(stations, id, date)
+		id := train(__no, m[__fromZh], m[__toZh], __date)
+		stations := pass(id, m[__fromZh], m[__toZh], __date)
+		walk(stations, id, __date)
 	},
 }
 
 var fw = &cobra.Command{
 	Use: "fullWalk",
 	Run: func(cmd *cobra.Command, args []string) {
-		log.Printf("start fullWalk no: %s, date: %s, from: %s, to: %s", no, date, fromZh, toZh)
-		index(m[fromZh], fromZh, m[toZh], toZh, date)
-		ids := trainAll(m[fromZh], m[toZh], date)
+		log.Printf("start fullWalk __no: %s, __date: %s, from: %s, to: %s", __no, __date, __fromZh, __toZh)
+		index(m[__fromZh], __fromZh, m[__toZh], __toZh, __date)
+		ids := trainAll(m[__fromZh], m[__toZh], __date)
 		for _, id := range ids {
-			stations := pass(id, m[fromZh], m[toZh], date)
-			fullWalk(stations, id, date)
+			stations := pass(id, m[__fromZh], m[__toZh], __date)
+			fullWalk(stations, id, __date)
 		}
 	},
 }
@@ -55,11 +55,11 @@ func Execute() {
 	rootCmd.AddCommand(wk)
 	rootCmd.AddCommand(sv)
 
-	wk.PersistentFlags().StringVarP(&no, "no", "n", "", "train no")
-	rootCmd.PersistentFlags().StringVarP(&date, "date", "d", "", "date")
-	rootCmd.PersistentFlags().StringVarP(&fromZh, "from", "f", "", "from")
-	rootCmd.PersistentFlags().StringVarP(&toZh, "to", "t", "", "from")
-	_ = rootCmd.MarkFlagRequired("date")
+	wk.PersistentFlags().StringVarP(&__no, "__no", "n", "", "train __no")
+	rootCmd.PersistentFlags().StringVarP(&__date, "__date", "d", "", "__date")
+	rootCmd.PersistentFlags().StringVarP(&__fromZh, "from", "f", "", "from")
+	rootCmd.PersistentFlags().StringVarP(&__toZh, "to", "t", "", "from")
+	_ = rootCmd.MarkFlagRequired("__date")
 	_ = rootCmd.MarkFlagRequired("from")
 	_ = rootCmd.MarkFlagRequired("to")
 

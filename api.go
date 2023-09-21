@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
-	"time"
 )
 
 func serve() {
@@ -38,13 +37,12 @@ func serve() {
 
 		for i := 0; i < len(stations); i++ {
 			trains = append(trains, trace(id, dateStr, stations[0], stations[i]))
-			time.Sleep(100 * time.Microsecond)
 		}
 		for i := 0; i < len(stations); i++ {
 			trains = append(trains, trace(id, dateStr, stations[i], stations[len(stations)-1]))
-			time.Sleep(100 * time.Microsecond)
 		}
 		res, _ := json.Marshal(trains)
+		w.Header().Add("Content-Type", "application/json")
 		w.Write(res)
 	})
 
