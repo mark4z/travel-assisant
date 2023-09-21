@@ -1,4 +1,4 @@
-module github.com/mark4z/travel-assistant
+module github.com/mark4z/travel-tools
 
 go 1.20
 
