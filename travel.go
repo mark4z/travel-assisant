@@ -21,6 +21,7 @@ var (
 var (
 	client http.Client
 	m      map[string]string
+	__init bool
 )
 
 func init() {
@@ -30,124 +31,91 @@ func init() {
 	}
 }
 
-func fullWalk(stations []Station, id string, date string) {
-	trace(id, date, stations[0], stations[len(stations)-1])
-}
-
-func walk(stations []Station, id string, date string) {
-	for i := 0; i < len(stations); i++ {
-		trace(id, date, stations[0], stations[i])
-		time.Sleep(500 * time.Microsecond)
+func index(from, to, date string) {
+	if __init {
+		return
 	}
-	fmt.Println()
-	for i := 0; i < len(stations); i++ {
-		trace(id, date, stations[i], stations[len(stations)-1])
-		time.Sleep(500 * time.Microsecond)
-	}
-}
-
-func index(from, fromZh, to, toZh, date string) {
-	res, err := client.Get(fmt.Sprintf(indexUrl, fromZh, from, toZh, to, date))
+	m = mapper()
+	res, err := client.Get(fmt.Sprintf(indexUrl, m[from], from, m[to], to, date))
 	if err != nil {
 		panic(err)
 	}
+	if res.StatusCode != 200 {
+		panic(fmt.Sprintf("index error %d", res.StatusCode))
+	}
 	_ = res.Body.Close()
+
+	__init = true
 }
 
-func trainAll(from, to, date string) (ans []string) {
-	info := trainInfo(date, from, to)
+func findAllTrain(from, to, date string) []*TrainRes {
+	index(from, to, date)
 
-	extraInfo := func(info string) (id, no, s, o, t string) {
-		infos := strings.Split(info, "|")
-		return infos[2], infos[3], infos[32], infos[31], infos[30]
-	}
-
-	for _, v := range info.Data.Result {
-		id, no, _, _, _ := extraInfo(v)
-		if strings.HasPrefix(no, "G") || strings.HasPrefix(no, "D") {
-			ans = append(ans, id)
-		}
-	}
-	return
-}
-
-func train(wantNo, from, to, date string) string {
-	info := trainInfo(date, from, to)
-
-	extraInfo := func(info string) (id, no, s, o, t string) {
-		infos := strings.Split(info, "|")
-		return infos[2], infos[3], infos[32], infos[31], infos[30]
-	}
-
-	for _, v := range info.Data.Result {
-		id, no, s, o, t := extraInfo(v)
-		if no == wantNo {
-			fmt.Println(fmt.Sprintf("train :%s [%s:%s] \ttwo：%s\tone：%s\tspecial：%s\tid:%s\t\n  ", no, m[from], m[to], t, o, s, id))
-			return id
-		}
-	}
-	return ""
-}
-
-func trainInfo(date string, from string, to string) *Info {
 	resp, err := client.Get(fmt.Sprintf(trainUrl, date, from, to))
 	if err != nil {
 		panic(err)
 	}
 	jsonStr, err := io.ReadAll(resp.Body)
 	_ = resp.Body.Close()
-	info := &Info{}
+	info := &struct {
+		Data struct {
+			Result []string `json:"result"`
+		} `json:"data"`
+	}{}
 	err = json.Unmarshal(jsonStr, info)
 	if err != nil {
 		panic(err)
 	}
-	return info
-}
-
-func trace(wantNo, date string, fromS, toS Station) *TrainRes {
-	from := m[fromS.StationName]
-	to := m[toS.StationName]
-	info := trainInfo(date, from, to)
-	extraInfo := func(info string) *TrainRes {
-		infos := strings.Split(info, "|")
-		return &TrainRes{
-			TrainCode:        infos[2],
-			TrainNo:          infos[3],
-			SpecialSeat:      infos[32],
-			OneSeat:          infos[31],
-			TwoSeat:          infos[30],
-			StartStation:     infos[4],
-			StartStationName: m[infos[4]],
-			EndStation:       infos[5],
-			EndStationName:   m[infos[5]],
-			FromStation:      infos[6],
-			FromStationName:  m[infos[6]],
-			ToStation:        infos[7],
-			ToStationName:    m[infos[7]],
-			StartTime:        infos[8],
-			EndTime:          infos[9],
+	res := make([]*TrainRes, 0)
+	for _, t := range info.Data.Result {
+		//filter G+D
+		trainRes := decode(t)
+		if strings.HasPrefix(trainRes.TrainNo, "G") || strings.HasPrefix(trainRes.TrainNo, "D") {
+			res = append(res, trainRes)
 		}
 	}
-	for _, v := range info.Data.Result {
-		t := extraInfo(v)
-		if t.TrainCode == wantNo {
-			fmt.Println(fmt.Sprintf("train :%s [%s:%s] \ttwo：%s\tone：%s\tspecial：%s\tid:%s\t\n  ", t.TrainNo, m[t.FromStation], m[t.ToStation], t.TwoSeat, t.OneSeat, t.SpecialSeat, t.TrainCode))
+	if len(res) == 0 {
+		panic(fmt.Sprintf("can not found target %s-%s %s", m[from], m[to], date))
+	}
+	return res
+}
+
+func findTrainByNo(wantNo, from, to, date string) *TrainRes {
+	trains := findAllTrain(from, to, date)
+
+	for _, t := range trains {
+		if t.TrainNo == wantNo {
 			return t
 		}
 	}
-	return nil
+	panic(fmt.Sprintf("can not found target findTrainByNo %s %s-%s %s", wantNo, m[from], m[to], date))
 }
 
-func pass(id, from, to, date string) []Station {
+func findPassStationsByCode(id, from, to, date string) []Station {
 	res, err := client.Get(fmt.Sprintf(passUrl, id, from, to, date))
 	if err != nil {
 		panic(err)
 	}
 	body, err := io.ReadAll(res.Body)
 	_ = res.Body.Close()
-	interval := &IntervalInfo{}
+	interval := &struct {
+		Data struct {
+			Data []Station `json:"data"`
+		} `json:"data"`
+	}{}
 	_ = json.Unmarshal(body, interval)
 	return interval.Data.Data
+}
+
+func findTrainByCode(wantCode, from, to, date string) *TrainRes {
+	trains := findAllTrain(from, to, date)
+
+	for _, t := range trains {
+		if t.TrainCode == wantCode {
+			return t
+		}
+	}
+	panic(fmt.Sprintf("can not found target findTrainByCode %s %s-%s %s", wantCode, m[from], m[to], date))
 }
 
 // save mapper to file with yyyy-mm-dd name
@@ -202,4 +170,25 @@ func mapper() map[string]string {
 		panic(err)
 	}
 	return temp
+}
+
+func decode(info string) *TrainRes {
+	fields := strings.Split(info, "|")
+	return &TrainRes{
+		TrainCode:        fields[2],
+		TrainNo:          fields[3],
+		SpecialSeat:      fields[32],
+		OneSeat:          fields[31],
+		TwoSeat:          fields[30],
+		StartStation:     fields[4],
+		StartStationName: m[fields[4]],
+		EndStation:       fields[5],
+		EndStationName:   m[fields[5]],
+		FromStation:      fields[6],
+		FromStationName:  m[fields[6]],
+		ToStation:        fields[7],
+		ToStationName:    m[fields[7]],
+		StartTime:        fields[8],
+		EndTime:          fields[9],
+	}
 }

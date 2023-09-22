@@ -22,29 +22,14 @@ func serve() {
 	})
 
 	http.HandleFunc("/walk", func(w http.ResponseWriter, r *http.Request) {
-		fromCode := r.URL.Query().Get("from")
-		toCode := r.URL.Query().Get("to")
-		dateStr := r.URL.Query().Get("date")
-		trainNo := r.URL.Query().Get("no")
-
-		log.Printf("start walk no: %s, date: %s, from: %s, to: %s", trainNo, dateStr, m[fromCode], m[toCode])
-		index(fromCode, m[fromCode], toCode, m[toCode], dateStr)
-
-		id := train(trainNo, fromCode, toCode, dateStr)
-		stations := pass(id, fromCode, toCode, dateStr)
-
-		var trains []*TrainRes
-
-		for i := 0; i < len(stations); i++ {
-			trains = append(trains, trace(id, dateStr, stations[0], stations[i]))
-		}
-		for i := 0; i < len(stations); i++ {
-			trains = append(trains, trace(id, dateStr, stations[i], stations[len(stations)-1]))
-		}
-		res, _ := json.Marshal(trains)
-		w.Header().Add("Content-Type", "application/json")
-		w.Write(res)
+		query := r.URL.Query()
+		fromCode, toCode := query.Get("from"), query.Get("to")
+		dateStr, trainNo := query.Get("date"), query.Get("no")
+		log.Printf("from: %s, to: %s, date: %s, no: %s", fromCode, toCode, dateStr, trainNo)
 	})
 
-	http.ListenAndServe(":8080", nil)
+	err := http.ListenAndServe(":8080", nil)
+	if err != nil {
+		panic(err)
+	}
 }
