@@ -1,35 +1,42 @@
 package main
 
 import (
-	"encoding/json"
+	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
 )
 
-func serve() {
-	m = mapper()
-
-	http.HandleFunc("/stations", func(w http.ResponseWriter, r *http.Request) {
-		var selects []Select
-		for k, v := range m {
-			if k[0] > 'Z' || rune(k[0]) < 'A' {
-				continue
-			}
-			selects = append(selects, Select{k, v})
+func stations(c *gin.Context) {
+	var selects []Select
+	for k, v := range m {
+		if k[0] > 'Z' || rune(k[0]) < 'A' {
+			continue
 		}
-		res, _ := json.Marshal(selects)
-		w.Write(res)
-	})
-
-	http.HandleFunc("/walk", func(w http.ResponseWriter, r *http.Request) {
-		query := r.URL.Query()
-		fromCode, toCode := query.Get("from"), query.Get("to")
-		dateStr, trainNo := query.Get("date"), query.Get("no")
-		log.Printf("from: %s, to: %s, date: %s, no: %s", fromCode, toCode, dateStr, trainNo)
-	})
-
-	err := http.ListenAndServe(":8080", nil)
-	if err != nil {
-		panic(err)
+		selects = append(selects, Select{k, v})
 	}
+	c.JSON(http.StatusOK, selects)
+}
+
+func walk(c *gin.Context) {
+	var req WalkReq
+	if err := c.ShouldBind(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	from, to, date, no := req.FromStation, req.ToStation, req.Date, req.TrainNo
+	log.Printf("from: %s, to: %s, date: %s, no: %s", from, to, date, no)
+	train := findTrainByNo(no, from, to, date)
+	c.JSON(http.StatusOK, train)
+}
+
+func fullWalk(c *gin.Context) {
+	var req TrainReq
+	if err := c.ShouldBind(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	from, to, date := req.FromStation, req.ToStation, req.Date
+	log.Printf("from: %s, to: %s, date: %s", from, to, date)
+	trains := findAllTrain(from, to, date)
+	c.JSON(http.StatusOK, trains)
 }

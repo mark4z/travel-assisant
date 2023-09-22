@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/gin-gonic/gin"
 	"github.com/spf13/cobra"
 	"log"
 	"os"
@@ -21,7 +22,15 @@ var rootCmd = &cobra.Command{
 var sv = &cobra.Command{
 	Use: "serve",
 	Run: func(cmd *cobra.Command, args []string) {
-		serve()
+		m = mapper()
+
+		r := gin.Default()
+		r.GET("/stations", stations)
+		r.GET("/walk", walk)
+		r.GET("/fullWalk", fullWalk)
+		if err := r.Run(); err != nil {
+			log.Fatal(err)
+		}
 	},
 }
 

@@ -1,0 +1,10 @@
+###
+GET http://localhost:8080/stations
+
+###
+GET http://localhost:8080/walk?from=ZAF&to=CAF&date=2023-10-01&no=G3133
+
+###
+GET http://localhost:8080/fullWalk?from=ZAF&to=CAF&date=2023-10-01
+
+

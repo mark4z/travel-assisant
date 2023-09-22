@@ -12,10 +12,14 @@ type Select struct {
 }
 
 type TrainReq struct {
-	TrainNo     string `json:"train_no"`
-	FromStation string `json:"from-station"`
-	ToStation   string `json:"to-station"`
-	Date        string `json:"__date"`
+	FromStation string `json:"from" form:"from" binding:"required"`
+	ToStation   string `json:"to" form:"to" binding:"required"`
+	Date        string `json:"date" form:"date" binding:"required"`
+}
+
+type WalkReq struct {
+	TrainNo string `json:"no" form:"no" binding:"required"`
+	TrainReq
 }
 
 type TrainRes struct {
