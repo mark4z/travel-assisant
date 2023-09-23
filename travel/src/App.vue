@@ -1,35 +1,13 @@
 <script lang="ts" setup>
 import {onMounted, ref} from 'vue'
-import {get} from '@/api';
+import {get, Pass, Stations, Train} from '@/api';
 
 const date = ref(new Date('2023-10-01'))
 const from = ref('UUH')
 const to = ref('TNV')
 const no = ref('G3133')
 const trains = ref<Train[]>([])
-
-export interface Train {
-  train_no: string
-  train_code: string
-  start_time: string
-  end_time: string
-  start_station: string
-  start_station_name: string
-  end_station: string
-  end_station_name: string
-  from_station: string
-  from_station_name: string
-  to_station: string
-  to_station_name: string
-  two_seat: string
-  one_seat: string
-  special_seat: string
-}
-
-export interface Stations {
-  value: string
-  label: string
-}
+const pass = ref(<Pass[]>([]))
 
 const tableRowClassName = ({
                              row,
@@ -53,26 +31,48 @@ onMounted(() => {
   })
 })
 
-function walk() {
-  get("/api/walk", {
+function search() {
+  get("/api/search", {
     from: from.value,
     to: to.value,
     // YYYY-MM-DD
     date: date.value.toISOString().slice(0, 10),
     no: no.value
   }).then(res => {
-    trains.value.push((res as Train))
+    trains.value = res as Train[]
   })
 }
 
-function fullWalk() {
-  get("/api/fullWalk", {
-    from: from.value,
-    to: to.value,
+async function fullWalk() {
+  for (let i = 0; i < trains.value.length; i++) {
+    const t = trains.value[i]
+    get("/api/search", {
+      from: t.start_station,
+      to: t.end_station,
+      // YYYY-MM-DD
+      date: date.value.toISOString().slice(0, 10),
+      no: t.train_code
+    }).then(res => {
+      var re = (res as Train[])[0];
+      re.from_station_name = '@' + t.from_station_name
+      re.to_station_name = '@' + t.to_station_name
+      re.start_time = '@' + t.start_time
+      re.end_time = '@' + t.end_time
+      trains.value[i] = re
+    })
+    await new Promise(resolve => setTimeout(resolve, 1000)); // 1000毫秒 = 1秒
+  }
+}
+
+function inspect(t: Train) {
+  get("/api/pass", {
+    from: t.from_station,
+    to: t.to_station,
     // YYYY-MM-DD
     date: date.value.toISOString().slice(0, 10),
+    no: t.train_code
   }).then(res => {
-    trains.value = res as Train[]
+    pass.value = res as Pass[]
   })
 }
 
@@ -114,8 +114,8 @@ function fullWalk() {
         </el-col>
         <el-col :span="4">
           <el-button-group>
-            <el-button type="success" round @click=walk>Walk</el-button>
-            <el-button type="primary" round @click=fullWalk>Search</el-button>
+            <el-button type="primary" round @click=search>Search</el-button>
+            <el-button type="success" round @click=fullWalk>FullWalk</el-button>
           </el-button-group>
         </el-col>
       </el-row>
@@ -129,13 +129,13 @@ function fullWalk() {
         <el-table-column prop="from_station_name" label="From"/>
         <el-table-column prop="to_station_name" label="To"/>
         <el-table-column prop="start_time" label="Arrive" sortable/>
-        <el-table-column prop="end_time" label="Start" sortable />
+        <el-table-column prop="end_time" label="Start" sortable/>
         <el-table-column prop="two_seat" label="Two"/>
         <el-table-column prop="one_seat" label="One"/>
         <el-table-column prop="special_seat" label="VIP"/>
         <el-table-column label="Operations">
           <template #default="scope">
-            <el-button size="small">walk</el-button>
+            <el-button size="default" type="success" round @click="inspect(scope.row)">Inspect</el-button>
           </template>
         </el-table-column>
       </el-table>

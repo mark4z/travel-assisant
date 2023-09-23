@@ -17,8 +17,8 @@ type TrainReq struct {
 	Date        string `json:"date" form:"date" binding:"required"`
 }
 
-type WalkReq struct {
-	TrainNo string `json:"no" form:"no" binding:"required"`
+type SearchReq struct {
+	TrainNo string `json:"no" form:"no"`
 	TrainReq
 }
 

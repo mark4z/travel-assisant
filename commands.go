@@ -26,8 +26,8 @@ var sv = &cobra.Command{
 
 		r := gin.Default()
 		r.GET("/stations", stations)
-		r.GET("/walk", walk)
-		r.GET("/fullWalk", fullWalk)
+		r.GET("/search", search)
+		r.GET("/pass", pass)
 		if err := r.Run(); err != nil {
 			log.Fatal(err)
 		}

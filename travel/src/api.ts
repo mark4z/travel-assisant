@@ -10,3 +10,31 @@ export async function post<T>(url: string, data?: any): Promise<T> {
     return response.data;
 }
 
+export interface Train {
+    train_no: string
+    train_code: string
+    start_time: string
+    end_time: string
+    start_station: string
+    start_station_name: string
+    end_station: string
+    end_station_name: string
+    from_station: string
+    from_station_name: string
+    to_station: string
+    to_station_name: string
+    two_seat: string
+    one_seat: string
+    special_seat: string
+}
+
+export interface Stations {
+    value: string
+    label: string
+}
+
+export interface Pass {
+    station_name: string
+    arrive_time: string
+    start_time: string
+}

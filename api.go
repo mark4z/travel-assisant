@@ -17,26 +17,40 @@ func stations(c *gin.Context) {
 	c.JSON(http.StatusOK, selects)
 }
 
-func walk(c *gin.Context) {
-	var req WalkReq
+func search(c *gin.Context) {
+	var req SearchReq
+	if err := c.ShouldBind(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	from, to, date, no := req.FromStation, req.ToStation, req.Date, req.TrainNo
+	if len(no) == 0 {
+		trains := findAllTrain(from, to, date)
+		c.JSON(http.StatusOK, trains)
+		return
+	}
+	log.Printf("from: %s, to: %s, date: %s, no: %s", from, to, date, no)
+	if no[0] >= 'A' && no[0] <= 'Z' {
+		train := findTrainByNo(no, from, to, date)
+		c.JSON(http.StatusOK, []*TrainRes{train})
+		return
+	}
+	train := findTrainByCode(no, from, to, date)
+	c.JSON(http.StatusOK, []*TrainRes{train})
+}
+
+func pass(c *gin.Context) {
+	var req SearchReq
 	if err := c.ShouldBind(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 	from, to, date, no := req.FromStation, req.ToStation, req.Date, req.TrainNo
 	log.Printf("from: %s, to: %s, date: %s, no: %s", from, to, date, no)
-	train := findTrainByNo(no, from, to, date)
-	c.JSON(http.StatusOK, train)
-}
-
-func fullWalk(c *gin.Context) {
-	var req TrainReq
-	if err := c.ShouldBind(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	if no[0] >= 'A' && no[0] <= 'Z' {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "train no error"})
 		return
 	}
-	from, to, date := req.FromStation, req.ToStation, req.Date
-	log.Printf("from: %s, to: %s, date: %s", from, to, date)
-	trains := findAllTrain(from, to, date)
-	c.JSON(http.StatusOK, trains)
+	stationsByCode := findPassStationsByCode(no, from, to, date)
+	c.JSON(http.StatusOK, stationsByCode)
 }
