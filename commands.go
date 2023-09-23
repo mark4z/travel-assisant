@@ -25,19 +25,24 @@ var rootCmd = &cobra.Command{
 
 //go:embed travel/dist/**
 var f embed.FS
+var templ *template.Template
+
+func init() {
+	templ = template.Must(template.New("").ParseFS(f, "travel/dist/*.html"))
+}
 
 var sv = &cobra.Command{
 	Use: "serve",
 	Run: func(cmd *cobra.Command, args []string) {
 		m = mapper()
 
+		gin.SetMode(gin.ReleaseMode)
 		r := gin.Default()
+		r.SetHTMLTemplate(templ)
+
 		r.GET("/stations", stations)
 		r.GET("/search", search)
 		r.GET("/pass", pass)
-
-		templ := template.Must(template.New("").ParseFS(f, "travel/dist/*.html"))
-		r.SetHTMLTemplate(templ)
 
 		r.GET("/", func(c *gin.Context) {
 			c.HTML(http.StatusOK, "index.html", gin.H{})
@@ -47,7 +52,7 @@ var sv = &cobra.Command{
 		})
 		r.StaticFS("/fs", http.FS(f))
 
-		if err := r.Run(); err != nil {
+		if err := r.Run(":80"); err != nil {
 			log.Fatal(err)
 		}
 	},
