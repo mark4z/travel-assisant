@@ -1,10 +1,14 @@
 package main
 
 import (
+	"embed"
+	_ "embed"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/cobra"
+	"html/template"
 	"log"
+	"net/http"
 	"os"
 )
 
@@ -19,6 +23,9 @@ var rootCmd = &cobra.Command{
 	Use: "travel",
 }
 
+//go:embed travel/dist/**
+var f embed.FS
+
 var sv = &cobra.Command{
 	Use: "serve",
 	Run: func(cmd *cobra.Command, args []string) {
@@ -29,8 +36,16 @@ var sv = &cobra.Command{
 		r.GET("/search", search)
 		r.GET("/pass", pass)
 
-		r.StaticFile("/", "./travel/dist/index.html")
-		r.Static("/assets", "./travel/dist/assets")
+		templ := template.Must(template.New("").ParseFS(f, "travel/dist/*.html"))
+		r.SetHTMLTemplate(templ)
+
+		r.GET("/", func(c *gin.Context) {
+			c.HTML(http.StatusOK, "index.html", gin.H{})
+		})
+		r.GET("/assets/*.", func(c *gin.Context) {
+			c.Redirect(http.StatusMovedPermanently, "/fs/travel/dist"+c.Request.URL.Path)
+		})
+		r.StaticFS("/fs", http.FS(f))
 
 		if err := r.Run(); err != nil {
 			log.Fatal(err)
