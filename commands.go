@@ -52,8 +52,8 @@ var sv = &cobra.Command{
 		})
 		r.StaticFS("/fs", http.FS(f))
 
-		log.Println("start serve, open http://localhost")
-		if err := r.Run(":80"); err != nil {
+		log.Println("start serve, open http://localhost:8080")
+		if err := r.Run(); err != nil {
 			log.Fatal(err)
 		}
 	},
