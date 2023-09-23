@@ -27,6 +27,7 @@
               v-model="date"
               type="date"
               placeholder="日期"
+              value-format="YYYY-MM-DD"
           />
         </el-col>
         <el-col :span="3">
@@ -116,7 +117,7 @@ import {get} from '@/api';
 
 const dialogVisible = ref(false)
 
-const date = ref(new Date('2023-10-01'))
+const date = ref('2023-10-01')
 const from = ref('UUH')
 const to = ref('TNV')
 const no = ref('G3133')
@@ -155,7 +156,7 @@ function search() {
     from: from.value,
     to: to.value,
     // YYYY-MM-DD
-    date: date.value.toISOString().slice(0, 10),
+    date: date.value,
     no: no.value
   }).then(res => {
     trains.value = res as Train[]
@@ -170,8 +171,8 @@ async function fullWalk() {
     get("/search", {
       from: t.start_station,
       to: t.end_station,
-      // YYYY-MM-DD
-      date: date.value.toISOString().slice(0, 10),
+      // YYYY-MM-DD UTC+8
+      date: date.value,
       no: t.train_code
     }).then(res => {
       var re = (res as Train[])[0];
@@ -193,7 +194,7 @@ function inspect(t: Train, reverse: boolean) {
     from: t.from_station,
     to: t.to_station,
     // YYYY-MM-DD
-    date: date.value.toISOString().slice(0, 10),
+    date: date.value,
     no: t.train_code
   }).then(async res => {
     pass.value = res as Pass[]
@@ -208,7 +209,7 @@ function inspect(t: Train, reverse: boolean) {
         from: from,
         to: to,
         // YYYY-MM-DD
-        date: date.value.toISOString().slice(0, 10),
+        date: date.value,
         no: t.train_code
       }).then(res => {
         const re = (res as Train[])[0];
