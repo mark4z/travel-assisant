@@ -2,6 +2,7 @@ package main
 
 type Station struct {
 	StationName string `json:"station_name"`
+	Station     string `json:"station"`
 	ArriveTime  string `json:"arrive_time"`
 	StartTime   string `json:"start_time"`
 }

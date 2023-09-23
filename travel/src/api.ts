@@ -26,6 +26,8 @@ export interface Train {
     two_seat: string
     one_seat: string
     special_seat: string
+    children?: Train[]
+    hasChildren?: boolean
 }
 
 export interface Stations {
@@ -34,7 +36,12 @@ export interface Stations {
 }
 
 export interface Pass {
+    station: string
     station_name: string
     arrive_time: string
     start_time: string
+
+    two_seat: string
+    one_seat: string
+    special_seat: string
 }

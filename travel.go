@@ -104,6 +104,9 @@ func findPassStationsByCode(id, from, to, date string) []Station {
 		} `json:"data"`
 	}{}
 	_ = json.Unmarshal(body, interval)
+	for i := range interval.Data.Data {
+		interval.Data.Data[i].Station = m[interval.Data.Data[i].StationName]
+	}
 	return interval.Data.Data
 }
 
