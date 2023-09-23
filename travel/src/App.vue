@@ -32,7 +32,7 @@
         <el-col :span="3">
           <el-input v-model="no" placeholder="车次"/>
         </el-col>
-        <el-col :span="4">
+        <el-col :span="6">
           <el-button-group>
             <el-button type="primary" round @click=search :loading="searchLoading">Search</el-button>
             <el-button type="success" round @click=fullWalk :loading="fullWalkLoading">FullWalk</el-button>
@@ -59,9 +59,12 @@
         <el-table-column prop="two_seat" label="Two"/>
         <el-table-column prop="one_seat" label="One"/>
         <el-table-column prop="special_seat" label="VIP"/>
-        <el-table-column label="Operations">
+        <el-table-column label="Operations" :width="200">
           <template #default="scope">
-            <el-button size="default" type="success" round @click="inspect(scope.row)">Inspect</el-button>
+            <el-button-group>
+              <el-button size="default" type="success" round @click="inspect(scope.row, false)">Inspect</el-button>
+              <el-button size="default" type="success" round @click="inspect(scope.row, true)">Reverse</el-button>
+            </el-button-group>
           </template>
         </el-table-column>
       </el-table>
@@ -71,7 +74,7 @@
   <el-dialog
       v-model="dialogVisible"
       title="Train Pass Stations"
-      width="80%"
+      width="60%"
       :before-close="handleClose"
   >
     <el-timeline>
@@ -79,10 +82,28 @@
           v-for="(p, index) in pass"
           :key="index"
           :timestamp="p.arrive_time"
+          hide-timestamp
+          center
       >
-        {{ p.station_name }} {{ p.arrive_time }}-{{ p.start_time }} {{ p.two_seat }} {{ p.one_seat }} {{
-          p.special_seat
-        }}
+        <el-row>
+          <el-col :span="4">
+            <el-button :size="'small'">{{ p.station_name }}</el-button>
+          </el-col>
+          <el-col :span="6">
+            <el-button :size="'small'">{{ p.arrive_time }}-{{ p.start_time }}</el-button>
+          </el-col>
+          <el-col :span="12">
+            <el-badge :value="p.two_seat" :type="p.two_seat!='无'? 'success':'warning'">
+              <el-button :size="'small'">Two</el-button>
+            </el-badge>
+            <el-badge :value="p.one_seat" :type="p.one_seat!='无'? 'success':'warning'">
+              <el-button :size="'small'">One</el-button>
+            </el-badge>
+            <el-badge :value="p.special_seat" :type="p.special_seat!='无'? 'success':'warning'">
+              <el-button :size="'small'">Spe</el-button>
+            </el-badge>
+          </el-col>
+        </el-row>
       </el-timeline-item>
     </el-timeline>
   </el-dialog>
@@ -165,7 +186,8 @@ async function fullWalk() {
   fullWalkLoading.value = false
 }
 
-function inspect(t: Train) {
+
+function inspect(t: Train, reverse: boolean) {
   dialogVisible.value = true
   get("/api/pass", {
     from: t.from_station,
@@ -176,18 +198,27 @@ function inspect(t: Train) {
   }).then(async res => {
     pass.value = res as Pass[]
     for (let i = 1; i < pass.value.length; i++) {
-      const p = pass.value[i]
+      let from = pass.value[0].station
+      let to = pass.value[i].station
+      if (reverse) {
+        from = pass.value[i - 1].station
+        to = pass.value[pass.value.length - 1].station
+      }
       get("/api/search", {
-        from: t.start_station,
-        to: p.station,
+        from: from,
+        to: to,
         // YYYY-MM-DD
         date: date.value.toISOString().slice(0, 10),
         no: t.train_code
       }).then(res => {
-        var re = (res as Train[])[0];
-        pass.value[i].two_seat = re.two_seat
-        pass.value[i].one_seat = re.one_seat
-        pass.value[i].special_seat = re.special_seat
+        const re = (res as Train[])[0];
+        let target = i;
+        if (reverse){
+          target--
+        }
+        pass.value[target].two_seat = re.two_seat
+        pass.value[target].one_seat = re.one_seat
+        pass.value[target].special_seat = re.special_seat
       })
       await new Promise(resolve => setTimeout(resolve, 1000)); // 1000毫秒 = 1秒
     }
