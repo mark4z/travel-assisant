@@ -70,7 +70,7 @@ func findAllTrain(from, to, date string) []*TrainRes {
 	for _, t := range info.Data.Result {
 		//filter G+D
 		trainRes := decode(t)
-		if strings.HasPrefix(trainRes.TrainNo, "G") || strings.HasPrefix(trainRes.TrainNo, "D") {
+		if strings.HasPrefix(trainRes.TrainNo, "G") || strings.HasPrefix(trainRes.TrainNo, "D") || strings.HasPrefix(trainRes.TrainNo, "C") {
 			res = append(res, trainRes)
 		}
 	}
