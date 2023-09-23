@@ -28,6 +28,10 @@ var sv = &cobra.Command{
 		r.GET("/stations", stations)
 		r.GET("/search", search)
 		r.GET("/pass", pass)
+
+		r.StaticFile("/", "./travel/dist/index.html")
+		r.Static("/assets", "./travel/dist/assets")
+
 		if err := r.Run(); err != nil {
 			log.Fatal(err)
 		}

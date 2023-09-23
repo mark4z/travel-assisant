@@ -144,14 +144,14 @@ const tableRowClassName = ({
 const options = ref<Stations[]>([])
 
 onMounted(() => {
-  get('/api/stations').then(res => {
+  get('/stations').then(res => {
     options.value = (res as Stations[])
   })
 })
 
 function search() {
   searchLoading.value = true
-  get("/api/search", {
+  get("/search", {
     from: from.value,
     to: to.value,
     // YYYY-MM-DD
@@ -167,7 +167,7 @@ async function fullWalk() {
   fullWalkLoading.value = true
   for (let i = 0; i < trains.value.length; i++) {
     const t = trains.value[i]
-    get("/api/search", {
+    get("/search", {
       from: t.start_station,
       to: t.end_station,
       // YYYY-MM-DD
@@ -189,7 +189,7 @@ async function fullWalk() {
 
 function inspect(t: Train, reverse: boolean) {
   dialogVisible.value = true
-  get("/api/pass", {
+  get("/pass", {
     from: t.from_station,
     to: t.to_station,
     // YYYY-MM-DD
@@ -204,7 +204,7 @@ function inspect(t: Train, reverse: boolean) {
         from = pass.value[i - 1].station
         to = pass.value[pass.value.length - 1].station
       }
-      get("/api/search", {
+      get("/search", {
         from: from,
         to: to,
         // YYYY-MM-DD
