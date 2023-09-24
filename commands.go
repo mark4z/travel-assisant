@@ -36,7 +36,6 @@ var sv = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		m = mapper()
 
-		gin.SetMode(gin.ReleaseMode)
 		r := gin.Default()
 		r.SetHTMLTemplate(templ)
 
@@ -53,7 +52,7 @@ var sv = &cobra.Command{
 		r.StaticFS("/fs", http.FS(f))
 
 		log.Println("start serve, open http://localhost:8080")
-		if err := r.Run(); err != nil {
+		if err := r.Run("0.0.0.0:8080"); err != nil {
 			log.Fatal(err)
 		}
 	},
