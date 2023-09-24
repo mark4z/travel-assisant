@@ -45,3 +45,5 @@ export interface Pass {
     one_seat: string
     special_seat: string
 }
+
+

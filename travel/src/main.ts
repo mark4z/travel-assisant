@@ -6,5 +6,5 @@ import 'element-plus/dist/index.css'
 
 const app = createApp(App)
 
-app.use(ElementPlus, { size: 'large' })
+app.use(ElementPlus, { size: 'default' })
 app.mount('#app')

@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -48,7 +49,7 @@ func index(from, to, date string) {
 	__init = true
 }
 
-func findAllTrain(from, to, date string) []*TrainRes {
+func findAllTrain(from, to, date string) ([]*TrainRes, error) {
 	index(from, to, date)
 
 	resp, err := client.Get(fmt.Sprintf(trainUrl, date, from, to))
@@ -64,7 +65,7 @@ func findAllTrain(from, to, date string) []*TrainRes {
 	}{}
 	err = json.Unmarshal(jsonStr, info)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	res := make([]*TrainRes, 0)
 	for _, t := range info.Data.Result {
@@ -75,23 +76,26 @@ func findAllTrain(from, to, date string) []*TrainRes {
 		}
 	}
 	if len(res) == 0 {
-		panic(fmt.Sprintf("can not found target %s-%s %s", m[from], m[to], date))
+		return nil, errors.New(fmt.Sprintf("can not found target %s-%s %s", m[from], m[to], date))
 	}
-	return res
+	return res, nil
 }
 
-func findTrainByNo(wantNo, from, to, date string) *TrainRes {
-	trains := findAllTrain(from, to, date)
+func findTrainByNo(wantNo, from, to, date string) (*TrainRes, error) {
+	trains, err := findAllTrain(from, to, date)
+	if err != nil {
+		return nil, err
+	}
 
 	for _, t := range trains {
 		if t.TrainNo == wantNo {
-			return t
+			return t, nil
 		}
 	}
-	panic(fmt.Sprintf("can not found target findTrainByNo %s %s-%s %s", wantNo, m[from], m[to], date))
+	return nil, errors.New(fmt.Sprintf("can not found target %s %s-%s %s", wantNo, m[from], m[to], date))
 }
 
-func findPassStationsByCode(id, from, to, date string) []Station {
+func findPassStationsByCode(id, from, to, date string) ([]Station, error) {
 	res, err := client.Get(fmt.Sprintf(passUrl, id, from, to, date))
 	if err != nil {
 		panic(err)
@@ -107,18 +111,24 @@ func findPassStationsByCode(id, from, to, date string) []Station {
 	for i := range interval.Data.Data {
 		interval.Data.Data[i].Station = m[interval.Data.Data[i].StationName]
 	}
-	return interval.Data.Data
+	if len(interval.Data.Data) == 0 {
+		return nil, errors.New("can not found the train: " + id)
+	}
+	return interval.Data.Data, err
 }
 
-func findTrainByCode(wantCode, from, to, date string) *TrainRes {
-	trains := findAllTrain(from, to, date)
+func findTrainByCode(wantCode, from, to, date string) (*TrainRes, error) {
+	trains, err := findAllTrain(from, to, date)
+	if err != nil {
+		return nil, err
+	}
 
 	for _, t := range trains {
 		if t.TrainCode == wantCode {
-			return t
+			return t, nil
 		}
 	}
-	panic(fmt.Sprintf("can not found target findTrainByCode %s %s-%s %s", wantCode, m[from], m[to], date))
+	return nil, errors.New(fmt.Sprintf("can not found target %s %s-%s %s", wantCode, m[from], m[to], date))
 }
 
 // save mapper to file with yyyy-mm-dd name

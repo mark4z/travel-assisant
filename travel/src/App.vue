@@ -1,9 +1,9 @@
 <template>
   <el-container>
-    <el-header>
+    <el-header height="100">
       <el-row :gutter="20">
-        <el-col :span="3">
-          <el-select filterable v-model="from" class="m-2" placeholder="从">
+        <el-col :span="4" :xs="12">
+          <el-select filterable v-model="from" placeholder="从">
             <el-option
                 v-for="item in options"
                 :key="item.value"
@@ -12,7 +12,7 @@
             />
           </el-select>
         </el-col>
-        <el-col :span="3">
+        <el-col :span="4" :xs="12">
           <el-select filterable v-model="to" class="m-2" placeholder="至">
             <el-option
                 v-for="item in options"
@@ -22,7 +22,7 @@
             />
           </el-select>
         </el-col>
-        <el-col :span="5">
+        <el-col :span="6" :xs="24">
           <el-date-picker
               v-model="date"
               type="date"
@@ -30,10 +30,10 @@
               value-format="YYYY-MM-DD"
           />
         </el-col>
-        <el-col :span="3">
+        <el-col :span="2" :xs="8">
           <el-input v-model="no" placeholder="车次"/>
         </el-col>
-        <el-col :span="6">
+        <el-col :span="6" :xs="16">
           <el-button-group>
             <el-button type="primary" round @click=search :loading="searchLoading">Search</el-button>
             <el-button type="success" round @click=fullWalk :loading="fullWalkLoading">FullWalk</el-button>
@@ -45,12 +45,11 @@
       <!--show all train-->
       <el-table
           :data="trains"
-          style="width: 100%"
           :row-class-name="tableRowClassName"
           border
-          size="default"
+          table-layout="auto"
       >
-        <el-table-column prop="train_no" label="Train"/>
+        <el-table-column prop="train_no" label="Train" fixed/>
         <el-table-column prop="start_station_name" label="Start"/>
         <el-table-column prop="end_station_name" label="End"/>
         <el-table-column prop="from_station_name" label="From"/>
@@ -75,7 +74,7 @@
   <el-dialog
       v-model="dialogVisible"
       title="Train Pass Stations"
-      width="60%"
+      width="80%"
       :before-close="handleClose"
   >
     <el-timeline>
@@ -84,24 +83,23 @@
           :key="index"
           :timestamp="p.arrive_time"
           hide-timestamp
-          center
       >
         <el-row>
-          <el-col :span="4">
-            <el-button :size="'small'">{{ p.station_name }}</el-button>
+          <el-col :span="4" :xs="6">
+            <el-button :size="'small'" text>{{ p.station_name }}</el-button>
           </el-col>
-          <el-col :span="6">
-            <el-button :size="'small'">{{ p.arrive_time }}-{{ p.start_time }}</el-button>
+          <el-col :span="6" :xs="8">
+            <el-button :size="'small'" text>{{ p.arrive_time }}-{{ p.start_time }}</el-button>
           </el-col>
-          <el-col :span="12">
+          <el-col :span="14" :xs="24">
             <el-badge :value="p.two_seat" :type="p.two_seat!='无'? 'success':'warning'">
-              <el-button :size="'small'">Two</el-button>
+              <el-button :size="'small'" round>Two</el-button>
             </el-badge>
             <el-badge :value="p.one_seat" :type="p.one_seat!='无'? 'success':'warning'">
-              <el-button :size="'small'">One</el-button>
+              <el-button :size="'small'" round>One</el-button>
             </el-badge>
             <el-badge :value="p.special_seat" :type="p.special_seat!='无'? 'success':'warning'">
-              <el-button :size="'small'">Spe</el-button>
+              <el-button :size="'small'" round>Spe</el-button>
             </el-badge>
           </el-col>
         </el-row>
@@ -114,13 +112,15 @@
 import {onMounted, ref} from 'vue'
 import type {Pass, Stations, Train} from "@/api";
 import {get} from '@/api';
+import {ElNotification} from 'element-plus'
 
 const dialogVisible = ref(false)
 
-const date = ref('2023-10-01')
-const from = ref('UUH')
-const to = ref('TNV')
-const no = ref('G3133')
+const date = ref('')
+const from = ref('')
+const to = ref('')
+const no = ref('')
+
 const trains = ref<Train[]>([])
 const pass = ref<Pass[]>([])
 
@@ -145,30 +145,44 @@ const tableRowClassName = ({
 const options = ref<Stations[]>([])
 
 onMounted(() => {
-  get('/stations').then(res => {
+  from.value = window.localStorage.getItem("from") as string;
+  to.value = window.localStorage.getItem("to") as string;
+  date.value = window.localStorage.getItem("date") as string;
+  no.value = window.localStorage.getItem("no") == null ? '' : window.localStorage.getItem("no") as string;
+
+  get('/api/stations').then(res => {
     options.value = (res as Stations[])
   })
 })
 
 function search() {
   searchLoading.value = true
-  get("/search", {
-    from: from.value,
-    to: to.value,
-    // YYYY-MM-DD
-    date: date.value,
-    no: no.value
-  }).then(res => {
-    trains.value = res as Train[]
-  })
+  const req =
+      {
+        from: from.value,
+        to: to.value,
+        // YYYY-MM-DD
+        date: date.value,
+        no: no.value
+      }
+  get("/api/search", req)
+      .then(res => {
+        trains.value = res as Train[]
+      })
+      .catch(err => handelError(err))
   searchLoading.value = false
+  //save req to localstorage
+  window.localStorage.setItem("from", req.from)
+  window.localStorage.setItem("to", req.to)
+  window.localStorage.setItem("date", req.date)
+  window.localStorage.setItem("no", req.no)
 }
 
 async function fullWalk() {
   fullWalkLoading.value = true
   for (let i = 0; i < trains.value.length; i++) {
     const t = trains.value[i]
-    get("/search", {
+    get("/api/search", {
       from: t.start_station,
       to: t.end_station,
       // YYYY-MM-DD UTC+8
@@ -181,16 +195,15 @@ async function fullWalk() {
       re.start_time = '@' + t.start_time
       re.end_time = '@' + t.end_time
       trains.value[i] = re
-    })
+    }).catch(err => handelError(err))
     await new Promise(resolve => setTimeout(resolve, 1000)); // 1000毫秒 = 1秒
   }
   fullWalkLoading.value = false
 }
 
-
 function inspect(t: Train, reverse: boolean) {
   dialogVisible.value = true
-  get("/pass", {
+  get("/api/pass", {
     from: t.from_station,
     to: t.to_station,
     // YYYY-MM-DD
@@ -205,7 +218,7 @@ function inspect(t: Train, reverse: boolean) {
         from = pass.value[i - 1].station
         to = pass.value[pass.value.length - 1].station
       }
-      get("/search", {
+      get("/api/search", {
         from: from,
         to: to,
         // YYYY-MM-DD
@@ -214,17 +227,26 @@ function inspect(t: Train, reverse: boolean) {
       }).then(res => {
         const re = (res as Train[])[0];
         let target = i;
-        if (reverse){
+        if (reverse) {
           target--
         }
         pass.value[target].two_seat = re.two_seat
         pass.value[target].one_seat = re.one_seat
         pass.value[target].special_seat = re.special_seat
       })
+          .catch(err => handelError(err))
       await new Promise(resolve => setTimeout(resolve, 1000)); // 1000毫秒 = 1秒
     }
+  }).catch(err => handelError(err))
+}
+
+function handelError(err: any) {
+  ElNotification({
+    message: err as string,
+    type: 'error',
   })
 }
+
 
 const handleClose = (done: () => void) => {
   pass.value = []
@@ -235,11 +257,11 @@ const handleClose = (done: () => void) => {
 
 <style>
 .el-table .warning-row {
-  --el-table-tr-bg-color: var(--el-color-warning-light-9);
+  --el-table-tr-bg-color: var(--el-color-warning-light-8);
 }
 
 .el-table .success-row {
-  --el-table-tr-bg-color: var(--el-color-success-light-9);
+  --el-table-tr-bg-color: var(--el-color-success-light-8);
 }
 </style>
 
