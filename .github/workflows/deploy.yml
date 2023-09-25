@@ -41,4 +41,5 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./dist
           publish_branch: gh-pages # 用于发布的分支
+          destination_dir: travel-tools
 
