@@ -8,6 +8,7 @@ import {ElementPlusResolver} from 'unplugin-vue-components/resolvers'
 
 // https://vitejs.dev/config/
 export default defineConfig({
+    base: 'travel-tools',
     plugins: [
         vue(),
         AutoImport({
@@ -33,5 +34,5 @@ export default defineConfig({
                 changeOrigin: true,
             }
         }
-    }
+    },
 })
