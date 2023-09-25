@@ -1,8 +1,9 @@
 import axiosInstance from './axios-instance';
 
+let initialized = false;
 const mapperUrl = "/otn/resources/js/framework/station_name.js?station_version=1.9274"
 const trainUrl = '/otn/leftTicket/queryZ';
-
+const indexUrl = "/otn/leftTicket/init"
 
 let m = <Record<string, string>>{}
 
@@ -111,6 +112,7 @@ export async function originalSearch(from: string, to: string, date: string): Pr
 }
 
 async function findAllTrain(from: string, to: string, date: string): Promise<Train[]> {
+    await index(from, to, date)
     return get<string>(`${trainUrl}`, {
         leftTicketDTO: {
             train_date: date,
@@ -138,6 +140,23 @@ async function findAllTrain(from: string, to: string, date: string): Promise<Tra
         });
 }
 
+async function index(from: string, to: string, date: string): Promise<void> {
+    if (initialized) {
+        return;
+    }
+    const req = {
+        linktypeid: 'dc',
+        fs: m[from] + ',' + from,
+        ts: m[to] + ',' + to,
+        date: date,
+        flag: 'N,N,Y'
+    }
+    get(indexUrl, req)
+        .then(response => {
+            console.info("index success")
+        })
+    initialized = true;
+}
 
 function decode(info: string): Train {
     const fields = info.split('|');
