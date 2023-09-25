@@ -111,7 +111,7 @@
 <script lang="ts" setup>
 import {onMounted, ref} from 'vue'
 import type {Pass, Stations, Train} from "@/api";
-import {get, init} from '@/api';
+import {get, init, originalSearch} from '@/api';
 import {ElNotification} from 'element-plus'
 
 const dialogVisible = ref(false)
@@ -166,7 +166,12 @@ function search() {
         date: date.value,
         no: no.value
       }
-  get("/api/search", req)
+  // get("/api/search", req)
+  //     .then(res => {
+  //       trains.value = res as Train[]
+  //     })
+  //     .catch(err => handelError(err))
+  originalSearch(req.from, req.to,req.date)
       .then(res => {
         trains.value = res as Train[]
       })

@@ -1,6 +1,8 @@
 import axiosInstance from './axios-instance';
 
 const mapperUrl = "/otn/resources/js/framework/station_name.js?station_version=1.9274"
+const trainUrl = '/otn/leftTicket/queryZ';
+
 
 let m = <Record<string, string>>{}
 
@@ -30,8 +32,6 @@ export interface Train {
     two_seat: string
     one_seat: string
     special_seat: string
-    children?: Train[]
-    hasChildren?: boolean
 }
 
 export interface Stations {
@@ -83,6 +83,7 @@ async function mapper(): Promise<Record<string, string>> {
         if (Date.now() - timestamp <= cacheExpirationTime) {
             return data;
         }
+        localStorage.removeItem(localStorageKey);
     }
     try {
         const response = await get<string>(mapperUrl);
@@ -98,8 +99,6 @@ async function mapper(): Promise<Record<string, string>> {
         // 将数据存储在LocalStorage中，并记录时间戳
         const dataToStore = {data: temp, timestamp: Date.now()};
         localStorage.setItem(localStorageKey, JSON.stringify(dataToStore));
-        // 清理过期的缓存数据
-        cleanupCache();
         return temp;
     } catch (error) {
         // 处理HTTP请求错误
@@ -107,17 +106,56 @@ async function mapper(): Promise<Record<string, string>> {
     }
 }
 
-// 清理过期的缓存数据
-function cleanupCache() {
-    const localStorageKey = 'mapperData';
-    const storedData = localStorage.getItem(localStorageKey);
+export async function originalSearch(from: string, to: string, date: string): Promise<Train[]> {
+    return findAllTrain(from, to, date)
+}
 
-    if (storedData) {
-        const {timestamp} = JSON.parse(storedData);
+async function findAllTrain(from: string, to: string, date: string): Promise<Train[]> {
+    return get<string>(`${trainUrl}`, {
+        leftTicketDTO: {
+            train_date: date,
+            from_station: from,
+            to_station: to,
+        },
+        purpose_codes: 'ADULT',
+    })
+        .then((response) => {
+            const info = JSON.parse(response);
+            const res: Train[] = [];
+            for (const t of info.data.result) {
+                const trainRes = decode(t);
+                if (trainRes.train_no.startsWith('G') || trainRes.train_no.startsWith('D') || trainRes.train_no.startsWith('C')) {
+                    res.push(trainRes);
+                }
+            }
+            if (res.length === 0) {
+                throw new Error(`Cannot find target ${from}-${to} ${date}`);
+            }
+            return res;
+        })
+        .catch((error) => {
+            throw error;
+        });
+}
 
-        // 检查缓存数据是否过期，如果过期则删除
-        if (Date.now() - timestamp > cacheExpirationTime) {
-            localStorage.removeItem(localStorageKey);
-        }
-    }
+
+function decode(info: string): Train {
+    const fields = info.split('|');
+    return {
+        train_code: fields[2],
+        train_no: fields[3],
+        special_seat: fields[32],
+        one_seat: fields[31],
+        two_seat: fields[30],
+        start_station: fields[4],
+        start_station_name: m[fields[4]], // 请确保 m 对象在当前作用域中可用
+        end_station: fields[5],
+        end_station_name: m[fields[5]], // 请确保 m 对象在当前作用域中可用
+        from_station: fields[6],
+        from_station_name: m[fields[6]], // 请确保 m 对象在当前作用域中可用
+        to_station: fields[7],
+        to_station_name: m[fields[7]], // 请确保 m 对象在当前作用域中可用
+        start_time: fields[8],
+        end_time: fields[9],
+    };
 }
