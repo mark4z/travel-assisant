@@ -20,6 +20,9 @@ jobs:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
 
+    env:
+      BASE_URL: https://kyfw.12306.cn # 设置环境变量
+
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
@@ -35,11 +38,13 @@ jobs:
 
       - name: Build
         run: npm run build
+
+      - name: custom
+        run: sed -i 's|baseURL: .*|baseURL: "$BASE_URL",|' src/axios-instance.ts
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./dist
           publish_branch: gh-pages # 用于发布的分支
-          destination_dir: travel-tools
 
