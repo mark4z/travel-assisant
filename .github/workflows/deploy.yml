@@ -39,8 +39,6 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: custom
-        run: sed -i 's|baseURL: .*|baseURL: "$BASE_URL",|' src/axios-instance.ts
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
