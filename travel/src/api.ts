@@ -88,7 +88,6 @@ async function mapper(): Promise<Record<string, string>> {
     }
     try {
         const response = await get<string>(mapperUrl);
-
         const city = response.split('@').slice(1);
         const temp: Record<string, string> = {};
 
@@ -113,16 +112,15 @@ export async function originalSearch(from: string, to: string, date: string): Pr
 
 async function findAllTrain(from: string, to: string, date: string): Promise<Train[]> {
     await index(from, to, date)
-    return get<string>(`${trainUrl}`, {
+    return get<any>(`${trainUrl}`, {
         'leftTicketDTO.train_date': date,
         'leftTicketDTO.from_station': from,
         'leftTicketDTO.to_station': to,
         purpose_codes: 'ADULT',
     })
-        .then((response) => {
-            const info = JSON.parse(response);
+        .then(response => {
             const res: Train[] = [];
-            for (const t of info.data.result) {
+            for (const t of response.data.result) {
                 const trainRes = decode(t);
                 if (trainRes.train_no.startsWith('G') || trainRes.train_no.startsWith('D') || trainRes.train_no.startsWith('C')) {
                     res.push(trainRes);

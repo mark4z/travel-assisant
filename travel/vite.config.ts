@@ -27,6 +27,10 @@ export default defineConfig({
             '/api': {
                 target: 'http://localhost:8080',
                 changeOrigin: true,
+            },
+            '/otn': {
+                target: 'https://kyfw.12306.cn',
+                changeOrigin: true,
             }
         }
     }
