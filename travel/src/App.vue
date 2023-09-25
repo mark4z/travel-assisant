@@ -111,7 +111,7 @@
 <script lang="ts" setup>
 import {onMounted, ref} from 'vue'
 import type {Pass, Stations, Train} from "@/api";
-import {get} from '@/api';
+import {get, init} from '@/api';
 import {ElNotification} from 'element-plus'
 
 const dialogVisible = ref(false)
@@ -150,9 +150,10 @@ onMounted(() => {
   date.value = window.localStorage.getItem("date") as string;
   no.value = window.localStorage.getItem("no") == null ? '' : window.localStorage.getItem("no") as string;
 
-  get('/api/stations').then(res => {
-    options.value = (res as Stations[])
-  })
+  // get('/api/stations').then(res => {
+  //   options.value = (res as Stations[])
+  // })
+  init().then(res => options.value = res)
 })
 
 function search() {
