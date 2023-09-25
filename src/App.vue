@@ -147,7 +147,7 @@ const types = ref(['G', 'D', 'K', 'Z', 'C'])
 const chosenTypes = ref<string[]>([])
 const trains = ref<Train[]>([])
 const pass = ref<Pass[]>([])
-const delay = ref<number>(2000)
+const delay = ref<number>(1200)
 
 const searchLoading = ref(false)
 const fullWalkLoading = ref(false)
@@ -169,9 +169,9 @@ const tableRowClassName = ({
 const options = ref<Stations[]>([])
 
 onMounted(() => {
-  from.value = window.localStorage.getItem("from") as string;
-  to.value = window.localStorage.getItem("to") as string;
-  date.value = window.localStorage.getItem("date") as string;
+  from.value = window.localStorage.getItem("from") == null ? '' : window.localStorage.getItem("from") as string;
+  to.value = window.localStorage.getItem("to") == null ? '' : window.localStorage.getItem("to") as string;
+  date.value = window.localStorage.getItem("date") == null ? '' : window.localStorage.getItem("date") as string;
   no.value = window.localStorage.getItem("no") == null ? '' : window.localStorage.getItem("no") as string;
   chosenTypes.value = window.localStorage.getItem("types") == null ? ['G', 'D'] : window.localStorage.getItem("types")!.split(',');
 

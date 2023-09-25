@@ -1,4 +1,4 @@
-package main
+package cmd
 
 import (
 	"embed"
@@ -23,7 +23,7 @@ var rootCmd = &cobra.Command{
 	Use: "travel",
 }
 
-//go:embed travel/dist/**
+//cmd:embed ../dist/**
 var f embed.FS
 var templ *template.Template
 

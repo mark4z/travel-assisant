@@ -1,4 +1,4 @@
-package main
+package cmd
 
 type Station struct {
 	StationName string `json:"station_name"`

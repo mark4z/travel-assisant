@@ -76,7 +76,7 @@ export async function init(): Promise<Stations[]> {
 // 保存映射到LocalStorage中
 async function mapper(): Promise<Record<string, string>> {
     const localStorageKey = 'mapperData';
-    const storedData = localStorage.getItem(localStorageKey);
+    const storedData = window.localStorage.getItem(localStorageKey);
 
     // 检查是否有缓存数据
     if (storedData) {
@@ -86,7 +86,7 @@ async function mapper(): Promise<Record<string, string>> {
         if (Date.now() - timestamp <= cacheExpirationTime) {
             return data;
         }
-        localStorage.removeItem(localStorageKey);
+        window.localStorage.removeItem(localStorageKey);
     }
     try {
         const response = await get<string>(mapperUrl);
@@ -100,7 +100,7 @@ async function mapper(): Promise<Record<string, string>> {
         }
         // 将数据存储在LocalStorage中，并记录时间戳
         const dataToStore = {data: temp, timestamp: Date.now()};
-        localStorage.setItem(localStorageKey, JSON.stringify(dataToStore));
+        window.localStorage.setItem(localStorageKey, JSON.stringify(dataToStore));
         return temp;
     } catch (error) {
         // 处理HTTP请求错误
