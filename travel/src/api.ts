@@ -114,11 +114,9 @@ export async function originalSearch(from: string, to: string, date: string): Pr
 async function findAllTrain(from: string, to: string, date: string): Promise<Train[]> {
     await index(from, to, date)
     return get<string>(`${trainUrl}`, {
-        leftTicketDTO: {
-            train_date: date,
-            from_station: from,
-            to_station: to,
-        },
+        'leftTicketDTO.train_date': date,
+        'leftTicketDTO.from_station': from,
+        'leftTicketDTO.to_station': to,
         purpose_codes: 'ADULT',
     })
         .then((response) => {
