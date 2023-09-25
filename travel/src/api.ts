@@ -4,6 +4,8 @@ let initialized = false;
 const mapperUrl = "/otn/resources/js/framework/station_name.js?station_version=1.9274"
 const trainUrl = '/otn/leftTicket/queryZ';
 const indexUrl = "/otn/leftTicket/init"
+const passUrl = "/otn/czxx/queryByTrainNo"
+
 
 let m = <Record<string, string>>{}
 
@@ -106,11 +108,42 @@ async function mapper(): Promise<Record<string, string>> {
     }
 }
 
-export async function originalSearch(from: string, to: string, date: string): Promise<Train[]> {
-    return findAllTrain(from, to, date)
+export async function originalSearch(from: string, to: string, date: string, no: string, type: string[]): Promise<Train[]> {
+    let trains = await findAllTrain(from, to, date, type);
+    if (no === null || no === '') {
+        return trains;
+    }
+    // if no[0] start with A-Z
+    if (/^[A-Z]/.test(no)) {
+        return trains.filter(t => t.train_no === no);
+    }
+    return trains.filter(t => t.train_code === no);
 }
 
-async function findAllTrain(from: string, to: string, date: string): Promise<Train[]> {
+export async function originalPass(from: string, to: string, date: string, no: string): Promise<Pass[]> {
+    return get<any>(`${passUrl}`, {
+        train_no: no,
+        from_station_telecode: from,
+        to_station_telecode: to,
+        depart_date: date,
+    }).then(
+        response => {
+            const res: Pass[] = [];
+            for (const t of response.data.data) {
+                res.push({
+                    station: m[t.station_name],
+                    station_name: t.station_name,
+                    arrive_time: t.arrive_time,
+                    start_time: t.start_time,
+                    one_seat: "", special_seat: "", two_seat: "",
+                })
+            }
+            return res;
+        }
+    )
+}
+
+async function findAllTrain(from: string, to: string, date: string, types: string[]): Promise<Train[]> {
     await index(from, to, date)
     return get<any>(`${trainUrl}`, {
         'leftTicketDTO.train_date': date,
@@ -122,7 +155,7 @@ async function findAllTrain(from: string, to: string, date: string): Promise<Tra
             const res: Train[] = [];
             for (const t of response.data.result) {
                 const trainRes = decode(t);
-                if (trainRes.train_no.startsWith('G') || trainRes.train_no.startsWith('D') || trainRes.train_no.startsWith('C')) {
+                if (types.includes(trainRes.train_no[0])) {
                     res.push(trainRes);
                 }
             }

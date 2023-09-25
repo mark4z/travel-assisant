@@ -2,7 +2,7 @@
   <el-container>
     <el-header height="100">
       <el-row :gutter="20">
-        <el-col :span="4" :xs="12">
+        <el-col :span="3" :xs="12">
           <el-select filterable v-model="from" placeholder="从">
             <el-option
                 v-for="item in options"
@@ -12,7 +12,7 @@
             />
           </el-select>
         </el-col>
-        <el-col :span="4" :xs="12">
+        <el-col :span="3" :xs="12">
           <el-select filterable v-model="to" class="m-2" placeholder="至">
             <el-option
                 v-for="item in options"
@@ -22,18 +22,40 @@
             />
           </el-select>
         </el-col>
-        <el-col :span="6" :xs="24">
+        <el-col :span="3" :xs="24">
           <el-date-picker
               v-model="date"
               type="date"
               placeholder="日期"
               value-format="YYYY-MM-DD"
+              :style="{width: '96%'}"
+              :clearable="false"
           />
         </el-col>
-        <el-col :span="2" :xs="8">
+        <el-col :span="2" :xs="12">
           <el-input v-model="no" placeholder="车次"/>
         </el-col>
-        <el-col :span="6" :xs="16">
+        <el-col :span="4" :xs="12">
+          <el-select
+              v-model="chosenTypes"
+              multiple
+              collapse-tags
+              collapse-tags-tooltip
+              placeholder="车型"
+              :max-collapse-tags="2"
+          >
+            <el-option
+                v-for="item in types"
+                :key="item"
+                :label="item"
+                :value="item"
+            />
+          </el-select>
+        </el-col>
+        <el-col :span="4" :xs="11">
+          <el-slider v-model="delay" :min="1000" :max="6000"/>
+        </el-col>
+        <el-col :span="5" :xs="13">
           <el-button-group>
             <el-button type="primary" round @click=search :loading="searchLoading">Search</el-button>
             <el-button type="success" round @click=fullWalk :loading="fullWalkLoading">FullWalk</el-button>
@@ -111,7 +133,7 @@
 <script lang="ts" setup>
 import {onMounted, ref} from 'vue'
 import type {Pass, Stations, Train} from "@/api";
-import {get, init, originalSearch} from '@/api';
+import {init, originalPass, originalSearch} from '@/api';
 import {ElNotification} from 'element-plus'
 
 const dialogVisible = ref(false)
@@ -121,8 +143,11 @@ const from = ref('')
 const to = ref('')
 const no = ref('')
 
+const types = ref(['G', 'D', 'K', 'Z', 'C'])
+const chosenTypes = ref<string[]>([])
 const trains = ref<Train[]>([])
 const pass = ref<Pass[]>([])
+const delay = ref<number>(2000)
 
 const searchLoading = ref(false)
 const fullWalkLoading = ref(false)
@@ -141,7 +166,6 @@ const tableRowClassName = ({
     return 'warning-row'
   }
 }
-
 const options = ref<Stations[]>([])
 
 onMounted(() => {
@@ -149,10 +173,8 @@ onMounted(() => {
   to.value = window.localStorage.getItem("to") as string;
   date.value = window.localStorage.getItem("date") as string;
   no.value = window.localStorage.getItem("no") == null ? '' : window.localStorage.getItem("no") as string;
+  chosenTypes.value = window.localStorage.getItem("types") == null ? ['G', 'D'] : window.localStorage.getItem("types")!.split(',');
 
-  // get('/api/stations').then(res => {
-  //   options.value = (res as Stations[])
-  // })
   init().then(res => options.value = res)
 })
 
@@ -164,14 +186,10 @@ function search() {
         to: to.value,
         // YYYY-MM-DD
         date: date.value,
-        no: no.value
+        no: no.value,
+        types: chosenTypes.value
       }
-  // get("/api/search", req)
-  //     .then(res => {
-  //       trains.value = res as Train[]
-  //     })
-  //     .catch(err => handelError(err))
-  originalSearch(req.from, req.to,req.date)
+  originalSearch(req.from, req.to, req.date, req.no, req.types)
       .then(res => {
         trains.value = res as Train[]
       })
@@ -182,19 +200,21 @@ function search() {
   window.localStorage.setItem("to", req.to)
   window.localStorage.setItem("date", req.date)
   window.localStorage.setItem("no", req.no)
+  window.localStorage.setItem("types", req.types.join(','))
 }
 
 async function fullWalk() {
   fullWalkLoading.value = true
   for (let i = 0; i < trains.value.length; i++) {
     const t = trains.value[i]
-    get("/api/search", {
-      from: t.start_station,
-      to: t.end_station,
-      // YYYY-MM-DD UTC+8
-      date: date.value,
-      no: t.train_code
-    }).then(res => {
+    originalSearch(
+        t.start_station,
+        t.end_station,
+        // YYYY-MM-DD UTC+8
+        date.value,
+        t.train_code,
+        types.value
+    ).then(res => {
       var re = (res as Train[])[0];
       re.from_station_name = '@' + t.from_station_name
       re.to_station_name = '@' + t.to_station_name
@@ -202,21 +222,20 @@ async function fullWalk() {
       re.end_time = '@' + t.end_time
       trains.value[i] = re
     }).catch(err => handelError(err))
-    await new Promise(resolve => setTimeout(resolve, 1000)); // 1000毫秒 = 1秒
+    await new Promise(resolve => setTimeout(resolve, delay.value)); // 1000毫秒 = 1秒
   }
   fullWalkLoading.value = false
 }
 
 function inspect(t: Train, reverse: boolean) {
   dialogVisible.value = true
-  get("/api/pass", {
-    from: t.from_station,
-    to: t.to_station,
-    // YYYY-MM-DD
-    date: date.value,
-    no: t.train_code
-  }).then(async res => {
-    pass.value = res as Pass[]
+  originalPass(
+      t.from_station,
+      t.to_station,
+      date.value,
+      t.train_code
+  ).then(async res => {
+    pass.value = res
     for (let i = 1; i < pass.value.length; i++) {
       let from = pass.value[0].station
       let to = pass.value[i].station
@@ -224,13 +243,14 @@ function inspect(t: Train, reverse: boolean) {
         from = pass.value[i - 1].station
         to = pass.value[pass.value.length - 1].station
       }
-      get("/api/search", {
-        from: from,
-        to: to,
-        // YYYY-MM-DD
-        date: date.value,
-        no: t.train_code
-      }).then(res => {
+      originalSearch(
+          from,
+          to,
+          // YYYY-MM-DD
+          date.value,
+          t.train_code,
+          types.value
+      ).then(res => {
         const re = (res as Train[])[0];
         let target = i;
         if (reverse) {
@@ -241,7 +261,7 @@ function inspect(t: Train, reverse: boolean) {
         pass.value[target].special_seat = re.special_seat
       })
           .catch(err => handelError(err))
-      await new Promise(resolve => setTimeout(resolve, 1000)); // 1000毫秒 = 1秒
+      await new Promise(resolve => setTimeout(resolve, delay.value)); // 1000毫秒 = 1秒
     }
   }).catch(err => handelError(err))
 }
