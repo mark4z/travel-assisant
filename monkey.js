@@ -35,10 +35,12 @@
     <link rel="icon" href="/favicon.ico">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Travel</title>
+    <script type="module" crossorigin src="/travel-tools/assets/index-f309f44d.js"></script>
+    <link rel="stylesheet" href="/travel-tools/assets/index-84adc395.css">
   </head>
   <body>
     <div id="app"></div>
-    <script type="module" src="/src/main.ts"></script>
+    
   </body>
 </html>
     
