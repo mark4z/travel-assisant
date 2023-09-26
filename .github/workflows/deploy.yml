@@ -36,8 +36,14 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Pre
+        run: "sed -i 's#baseURL: ""#baseURL:"https://kyfw.12306.cn"#' src/axios-instance.ts"
+
       - name: Build
         run: npm run build
+
+      - name: Custom
+        run: sed -i 's#/assets/index-#/travel-tools/assets/index-#' dist/index.html
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
