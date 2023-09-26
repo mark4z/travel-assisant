@@ -43,7 +43,7 @@ jobs:
         run: npm run build
 
       - name: Custom
-        run: sed -i 's#/assets/index-#/travel-tools/assets/index-#' dist/index.html && sed -i '/iframe.srcdoc/r index.html' monkey.js && cp monkey.js dist/monkey.js
+        run: sed -i 's#/assets/index-#/travel-tools/assets/index-#' dist/index.html && sed -i '/iframe.srcdoc/r dist/index.html' monkey.js && cp monkey.js dist/monkey.js
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
