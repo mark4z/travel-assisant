@@ -3,7 +3,7 @@ import axios, {AxiosError} from 'axios';
 import {ElMessage} from 'element-plus'
 
 const axiosInstance: AxiosInstance = axios.create({
-    baseURL: "https://kyfw.12306.cn",
+    baseURL: "",
 });
 
 export default axiosInstance;
