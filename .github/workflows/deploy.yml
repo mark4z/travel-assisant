@@ -37,7 +37,7 @@ jobs:
         run: npm install
 
       - name: Pre
-        run: "sed -i 's#baseURL: ""#baseURL:"https://kyfw.12306.cn"#' src/axios-instance.ts"
+        run: "sed -i 's#baseURL: \"\"#baseURL: \"https://kyfw.12306.cn\"#' src/axios-instance.ts"
 
       - name: Build
         run: npm run build
