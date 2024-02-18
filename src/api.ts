@@ -2,7 +2,7 @@ import axiosInstance from './axios-instance';
 
 let initialized = false;
 const mapperUrl = "/otn/resources/js/framework/station_name.js?station_version=1.9274"
-const trainUrl = '/otn/leftTicket/queryZ';
+const trainUrl = '/otn/leftTicket/queryE';
 const indexUrl = "/otn/leftTicket/init"
 const passUrl = "/otn/czxx/queryByTrainNo"
 
