@@ -27,10 +27,21 @@
     iframe.style.border = '1px solid #ccc';
 
 // 设置 iframe 内容，这部分代码保持不变
-    iframe.srcdoc = `
-    
-    `;
-
-// 将 iframe 添加到当前页面
+    iframe.srcdoc = '<!DOCTYPE html>\n' +
+        '<html lang="en">\n' +
+        '  <head>\n' +
+        '    <meta charset="UTF-8">\n' +
+        '    <link rel="icon" href="/favicon.ico">\n' +
+        '    <meta name="viewport" content="width=device-width, initial-scale=1.0">\n' +
+        '    <title>Travel</title>\n' +
+        '    <script type="module" crossorigin src="https://mark4z.gitee.io/travel-tools/assets/index-4a57e87d.js"></script>\n' +
+        '    <link rel="stylesheet" href="https://mark4z.gitee.io/travel-tools/assets/index-84adc395.css">\n' +
+        '  </head>\n' +
+        '  <body>\n' +
+        '    <div id="app"></div>\n' +
+        '    \n' +
+        '  </body>\n' +
+        '</html>';
+    // 将 iframe 添加到当前页面
     document.body.appendChild(iframe);
 })();
